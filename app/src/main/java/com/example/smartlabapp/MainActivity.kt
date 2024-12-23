@@ -20,9 +20,6 @@ import com.google.accompanist.pager.*
 import android.content.SharedPreferences
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
-import com.example.pr31.ui.components.OnboardDescription
-import com.example.pr31.ui.components.OnboardHeader
-import com.example.pr31.ui.components.TextButtonN
 
 class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferences: SharedPreferences
@@ -74,38 +71,6 @@ class MainActivity : ComponentActivity() {
     fun MainContent(currentQueue: Int, onQueueChange: (Int) -> Unit) {
         val queues = listOf(
             QueueContent(
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(modifier = Modifier.padding(innerPadding), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            TextButtonN(
-                                modifier = Modifier,
-                                text = "Пропустить",
-                                onClick = { onQueueChange(3) } // Устанавливаем очередь на 3
-                            )
-                            Image(
-                                ImageBitmap.imageResource(R.drawable.shape),
-                                "imageshape",
-                                modifier = Modifier.size(167.04.dp, 163.11.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(60.89.dp))
-                        OnboardHeader(modifier = Modifier, text = "Анализы")
-                        Spacer(modifier = Modifier.height(49.dp))
-                        OnboardDescription(modifier = Modifier, text = "Экспресс сбор и получение проб")
-                        Spacer(modifier = Modifier.height(60.dp))
-                        Image(
-                            ImageBitmap.imageResource(R.drawable.page1),
-                            "imagepage",
-                            modifier = Modifier.size(58.dp, 14.29.dp)
-                        )
-                        Spacer(modifier = Modifier.height(113.14.dp))
-                        Image(
-                            ImageBitmap.imageResource(R.drawable.colb),
-                            "imagecolb",
-                            modifier = Modifier.size(204.dp, 200.47.dp)
-                        )
-                    }
-                }
                 title = "Анализы",
                 description = "Описание анализов",
                 buttonLabel = "Пропустить",
