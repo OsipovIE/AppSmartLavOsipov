@@ -18,8 +18,6 @@ import androidx.compose.ui.unit.sp
 import com.example.smartlabapp.ui.theme.SmartLabAppTheme
 import com.google.accompanist.pager.*
 import android.content.SharedPreferences
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.res.imageResource
 
 class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferences: SharedPreferences
@@ -42,11 +40,7 @@ class MainActivity : ComponentActivity() {
                     userScrollEnabled = currentQueue < 3 // Запретить свайп, если на последней очереди
                 ) { page ->
                     MainContent(page) { newQueue ->
-                        if (newQueue >= 3) {
-                            currentQueue = 3
-                        } else {
-                            currentQueue = newQueue
-                        }
+                        currentQueue = if (newQueue >= 3) 3 else newQueue
                     }
                 }
 
@@ -72,52 +66,108 @@ class MainActivity : ComponentActivity() {
         val queues = listOf(
             QueueContent(
                 title = "Анализы",
-                description = "Описание анализов",
+                description = "Экспресс сбор и получение проб",
                 buttonLabel = "Пропустить",
-                onButtonClick = { onQueueChange(3) } // Переход на последнюю очередь
+                onButtonClick = { onQueueChange(3) }, // Переход на последнюю очередь
+                shapeImage = R.drawable.shape,
+                pageImage = R.drawable.page1,
+                colbImage = R.drawable.colb
             ),
             QueueContent(
                 title = "Анализы",
                 description = "Описание анализов",
                 buttonLabel = "Пропустить",
-                onButtonClick = { onQueueChange(3) } // Переход на последнюю очередь
+                onButtonClick = { onQueueChange(3) }, // Переход на последнюю очередь
+                shapeImage = R.drawable.shape,
+                pageImage = R.drawable.page2,
+                colbImage = R.drawable.doctor2
             ),
             QueueContent(
                 title = "Добро пожаловать",
                 description = "",
                 buttonLabel = "Завершить",
-                onButtonClick = { onQueueChange(3) } // Переход на последнюю очередь
+                onButtonClick = { onQueueChange(3) }, // Переход на последнюю очередь
+                shapeImage = R.drawable.shape,
+                pageImage = R.drawable.page3,
+                colbImage = R.drawable.dooctor3
             ),
             QueueContent(
-                title = "Спасибо за использование приложения!",
-                description = "Вы завершили все очереди.",
+                title = "Регистрация",
+                description = "Введите Свое имя",
                 buttonLabel = "",
-                onButtonClick = {}
+                onButtonClick = {},
+                shapeImage = R.drawable.shape,
+                pageImage = R.drawable.page1,
+                colbImage = R.drawable.colb
             )
         )
 
-        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            if (currentQueue < queues.size) {
-                val queue = queues[currentQueue]
-                Header(queue.buttonLabel) { queue.onButtonClick() }
-                Text(queue.title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(queue.description, fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(12.dp))
-                Image(painter = painterResource(id = R.drawable.colb), contentDescription = "Colb Image")
-            }
+        if (currentQueue < queues.size) {
+            val queue = queues[currentQueue]
+            QueueContentScreen(
+                title = queue.title,
+                description = queue.description,
+                buttonLabel = queue.buttonLabel,
+                onButtonClick = queue.onButtonClick,
+                shapeImage = queue.shapeImage,
+                pageImage = queue.pageImage,
+                colbImage = queue.colbImage
+            )
         }
     }
 
     @Composable
-    fun Header(buttonLabel: String, onButtonClick: () -> Unit) {
-        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            if (buttonLabel.isNotEmpty()) { // Проверяем, есть ли текст для кнопки
-                Button(onClick = onButtonClick) {
-                    Text(buttonLabel, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+    fun QueueContentScreen(
+        title: String,
+        description: String,
+        buttonLabel: String,
+        onButtonClick: () -> Unit,
+        shapeImage: Int,
+        pageImage: Int,
+        colbImage: Int
+    ) {
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            Column(modifier = Modifier.padding(innerPadding), horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TextButton(
+                        onClick = onButtonClick,
+                        modifier = Modifier
+                    ) {
+                        Text(buttonLabel)
+                    }
+                    Image(
+                        painter = painterResource(id = shapeImage),
+                        contentDescription = "Shape Icon",
+                        modifier = Modifier.size(167.04.dp, 163.11.dp)
+                    )
                 }
+                Spacer(modifier = Modifier.height(60.89.dp))
+                Text(
+                    text = title,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(49.dp))
+                Text(
+                    text = description,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(60.dp))
+                Image(
+                    painter = painterResource(id = pageImage),
+                    contentDescription = "Page Image",
+                    modifier = Modifier.size(58.dp, 14.29.dp)
+                )
+                Spacer(modifier = Modifier.height(113.14.dp))
+                Image(
+                    painter = painterResource(id = colbImage),
+                    contentDescription = "Colb Image",
+                    modifier = Modifier.size(204.dp, 200.47.dp)
+                )
             }
-            Image(painter = painterResource(id = R.drawable.shape), contentDescription = "Shape Icon")
         }
     }
 
@@ -125,7 +175,10 @@ class MainActivity : ComponentActivity() {
         val title: String,
         val description: String,
         val buttonLabel: String,
-        val onButtonClick: () -> Unit
+        val onButtonClick: () -> Unit,
+        val shapeImage: Int,
+        val pageImage: Int,
+        val colbImage: Int
     )
 
     @Preview(showBackground = true)
