@@ -22,10 +22,16 @@ import androidx.navigation.NavController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.navigation.NavGraph
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Autorization(navController: NavController) {
+
+
     var email by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -36,10 +42,16 @@ fun Autorization(navController: NavController) {
         // Регулярное выражение для проверки корректности email
         val emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
         // Список допустимых доменов
-        val validDomains = listOf("@gmail.com", "@yahoo.com", "@mail.ru", "@yandex.ru", "@example.com")
+        val validDomains =
+            listOf("@gmail.com", "@yahoo.com", "@mail.ru", "@yandex.ru", "@example.com")
 
         // Проверяем, соответствует ли email регулярному выражению и заканчивается ли на допустимый домен
-        return emailRegex.matches(email) && validDomains.any { email.endsWith(it, ignoreCase = true) }
+        return emailRegex.matches(email) && validDomains.any {
+            email.endsWith(
+                it,
+                ignoreCase = true
+            )
+        }
     }
 
 
@@ -166,16 +178,15 @@ fun Autorization(navController: NavController) {
                     email.text.isNotEmpty() && password.text.isNotEmpty() && !emailError
 
                 Button(
-                    onClick = {
-                        if (isButtonEnabled) {
-                            navController.navigate("WelcomeIn")
-                        }
-                    },
+                    onClick = { navController.navigate("WelcomeIn") },
                     enabled = isButtonEnabled,
                     modifier = Modifier
                         .width(335.dp)
                         .height(56.dp)
-                        .background(if (isButtonEnabled) Color.Blue else Color.Gray, RoundedCornerShape(10.dp))
+                        .background(
+                            if (isButtonEnabled) Color.Blue else Color.Gray,
+                            RoundedCornerShape(10.dp)
+                        )
                 ) {
                     Text(text = "Далее", color = Color.White)
                 }
@@ -184,7 +195,9 @@ fun Autorization(navController: NavController) {
     }
 }
 
+
 @Composable
 fun PreviewAuthorization() {
     Autorization(navController = rememberNavController())
 }
+

@@ -30,13 +30,16 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 
 class MainActivity : ComponentActivity() {
+
     private lateinit var sharedPreferences: SharedPreferences
     private var currentQueue by mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-
+        setContent{
+            Navigation()
+        }
         // Проверка, было ли приложение открыто ранее
         currentQueue = sharedPreferences.getInt("current_queue", 0)
 
@@ -47,6 +50,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(navController, startDestination = "authorization") {
                         composable("authorization") { Autorization(navController) }
+                        composable("WelcomeIn") { WelcomeIn(navController) }
                     }
                 }
             }
@@ -57,12 +61,21 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController, startDestination = "main") {
                         composable("main") { MainScreen(navController) }
                         composable("authorization") { Autorization(navController) }
+                        composable("WelcomeIn") { WelcomeIn(navController) }
                     }
                 }
             }
         }
     }
-
+    @Composable
+    fun Navigation() {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "main") {
+            composable("main") { MainScreen(navController) }
+            composable("Autorization") { Autorization(navController) }
+            composable("WelcomeIn") { WelcomeIn(navController) }
+        }
+    }
     @Composable
     fun MainScreen(navController: NavController) {
         val pagerState = rememberPagerState(initialPage = currentQueue)
@@ -105,8 +118,8 @@ class MainActivity : ComponentActivity() {
                 modifierSize = Modifier.size(204.dp, 200.47.dp)
             ),
             QueueContent(
-                title = "Анализы",
-                description = "Описание анализов",
+                title = "Уведомления",
+                description = "Вы быстро узнаете о результатах",
                 buttonLabel = "Пропустить",
                 onButtonClick = { onQueueChange(2) }, // Переход на следующую очередь
                 shapeImage = R.drawable.shape,
@@ -115,8 +128,9 @@ class MainActivity : ComponentActivity() {
                 modifierSize = Modifier.size(366.dp, 217.dp)
             ),
             QueueContent(
-                title = "Добро пожаловать",
-                description = "",
+                title = "Мониторинг",
+                description = "Наши врачи всегда наблюдают \n" +
+                        "за вашими показателями здоровья",
                 buttonLabel = "Завершить",
                 onButtonClick = { onQueueChange(2) }, // Переход на авторизацию
                 shapeImage = R.drawable.shape,
