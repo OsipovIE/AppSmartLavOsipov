@@ -51,6 +51,8 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController, startDestination = "authorization") {
                         composable("authorization") { Autorization(navController) }
                         composable("WelcomeIn") { WelcomeIn(navController) }
+                        composable("Autorization") { Autorization(navController) }
+                        composable("AutorizationReg") { AutorizationReg(navController) }
                     }
                 }
             }
@@ -90,11 +92,12 @@ class MainActivity : ComponentActivity() {
                 if (newQueue > currentQueue) {
                     currentQueue = newQueue
                     sharedPreferences.edit().putInt("current_queue", currentQueue).apply()
-                    if (newQueue == 2) {
-                        // Сохраняем состояние авторизации, если пользователь нажал "Завершить"
+                    if (newQueue == 3) {
+                        println("Переход на экран авторизации")
                         sharedPreferences.edit().putBoolean("is_switch", true).apply()
                         navController.navigate("authorization") // Переход на авторизацию
                     }
+
                 }
             }
         }
@@ -111,7 +114,7 @@ class MainActivity : ComponentActivity() {
                 title = "Анализы",
                 description = "Экспресс сбор и получение проб",
                 buttonLabel = "Пропустить",
-                onButtonClick = { onQueueChange(2) }, // Переход на следующую очередь
+                onButtonClick = { onQueueChange(3) },
                 shapeImage = R.drawable.shape,
                 pageImage = R.drawable.page1,
                 colbImage = R.drawable.colb,
@@ -121,7 +124,7 @@ class MainActivity : ComponentActivity() {
                 title = "Уведомления",
                 description = "Вы быстро узнаете о результатах",
                 buttonLabel = "Пропустить",
-                onButtonClick = { onQueueChange(2) }, // Переход на следующую очередь
+                onButtonClick = { onQueueChange(3) },
                 shapeImage = R.drawable.shape,
                 pageImage = R.drawable.page2,
                 colbImage = R.drawable.doctor2,
@@ -132,12 +135,13 @@ class MainActivity : ComponentActivity() {
                 description = "Наши врачи всегда наблюдают \n" +
                         "за вашими показателями здоровья",
                 buttonLabel = "Завершить",
-                onButtonClick = { onQueueChange(2) }, // Переход на авторизацию
+                onButtonClick = { onQueueChange(3) },
                 shapeImage = R.drawable.shape,
                 pageImage = R.drawable.page3,
                 colbImage = R.drawable.dooctor3,
                 modifierSize = Modifier.size(359.dp, 269.dp)
             )
+
         )
 
         if (currentQueue < queues.size) {

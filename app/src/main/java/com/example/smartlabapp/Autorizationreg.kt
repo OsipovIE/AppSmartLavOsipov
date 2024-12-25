@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,9 +23,13 @@ import androidx.navigation.NavController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.navigation.NavGraph
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Autorization(navController: NavController) {
+fun AutorizationReg(navController: NavController) {
     var email by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -69,7 +74,7 @@ fun Autorization(navController: NavController) {
                 }
                 Spacer(modifier = Modifier.height(26.dp))
                 Text(
-                    text = "Войдите, чтобы пользоваться функциями \nприложения",
+                    text = "Зарегистрируйтесь, чтобы пользоваться   \nфункциями приложения",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.W400,
                     fontFamily = FontFamily(Font(R.font.nunito_medium)),
@@ -155,6 +160,7 @@ fun Autorization(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .padding(top = 452.dp)
+
             ) {
                 val isButtonEnabled =
                     email.text.isNotEmpty() && password.text.isNotEmpty() && !emailError
@@ -179,20 +185,20 @@ fun Autorization(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Еще нет аккаунта? ",
+                        text = "Уже есть аккаунт? ",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.W400,
                         fontFamily = FontFamily(Font(R.font.nunito_medium)),
                         color = Color.Gray
                     )
                     Text(
-                        text = "Зарегистрироваться",
+                        text = "Войти",
                         fontSize = 14.sp,
                         fontFamily = FontFamily(Font(R.font.nunito_medium)),
                         fontWeight = FontWeight.W600,
                         color = Color.Blue,
                         modifier = Modifier
-                            .clickable { navController.navigate("AutorizationReg") }
+                            .clickable { navController.navigate("Autorization") }
                     )
                 }
             }
@@ -201,6 +207,6 @@ fun Autorization(navController: NavController) {
 }
 @Preview
 @Composable
-fun PreviewAuthorization() {
-    Autorization(navController = rememberNavController())
+fun PreviewAuthorizationReg() {
+    AutorizationReg(navController = rememberNavController())
 }
