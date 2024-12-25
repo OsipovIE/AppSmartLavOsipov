@@ -15,90 +15,114 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.smartlabapp.ui.components.CustomTextButton
 import com.example.smartlabapp.ui.theme.SmartLabAppTheme
-import com.google.accompanist.pager.*
 import android.content.SharedPreferences
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.example.smartlabapp.ui.theme.GreenTitle
+import com.example.smartlabapp.ui.theme.GreyDiscr
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
 
 class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferences: SharedPreferences
-    private var currentQueue by mutableStateOf(0) // Начинаем с первой очереди
+    private var currentQueue by mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        currentQueue = sharedPreferences.getInt("current_queue", 0) // Загружаем сохраненное состояние
 
-        setContent {
-            SmartLabAppTheme {
-                // Устанавливаем состояние для пейджера
-                val pagerState = rememberPagerState(initialPage = currentQueue)
+        // Проверка, было ли приложение открыто ранее
+        currentQueue = sharedPreferences.getInt("current_queue", 0)
 
-                HorizontalPager(
-                    count = 4, // Количество экранов
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    userScrollEnabled = currentQueue < 3 // Запретить свайп, если на последней очереди
-                ) { page ->
-                    MainContent(page) { newQueue ->
-                        currentQueue = if (newQueue >= 3) 3 else newQueue
+        // Если пользователь уже прошел свайпы, сразу переходим на экран авторизации
+        if (sharedPreferences.getBoolean("is_switch", false)) {
+            setContent {
+                SmartLabAppTheme {
+                    val navController = rememberNavController()
+                    NavHost(navController, startDestination = "authorization") {
+                        composable("authorization") { Autorization(navController) }
                     }
                 }
-
-                // Следим за изменениями страницы
-                LaunchedEffect(pagerState.currentPage) {
-                    currentQueue = pagerState.currentPage
-                }
-
-                // Следим за изменением currentQueue и прокручиваем к последней странице
-                LaunchedEffect(currentQueue) {
-                    if (currentQueue == 3) {
-                        pagerState.scrollToPage(3) // Переход на последний экран
+            }
+        } else {
+            setContent {
+                SmartLabAppTheme {
+                    val navController = rememberNavController()
+                    NavHost(navController, startDestination = "main") {
+                        composable("main") { MainScreen(navController) }
+                        composable("authorization") { Autorization(navController) }
                     }
-                    // Сохраняем состояние в SharedPreferences
-                    sharedPreferences.edit().putInt("current_queue", currentQueue).apply()
                 }
             }
         }
     }
 
     @Composable
-    fun MainContent(currentQueue: Int, onQueueChange: (Int) -> Unit) {
+    fun MainScreen(navController: NavController) {
+        val pagerState = rememberPagerState(initialPage = currentQueue)
+
+        HorizontalPager(
+            count = 3,
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            userScrollEnabled = true // включаем возможность пролистывания
+        ) { page ->
+            MainContent(page, navController) { newQueue ->
+                if (newQueue > currentQueue) {
+                    currentQueue = newQueue
+                    sharedPreferences.edit().putInt("current_queue", currentQueue).apply()
+                    if (newQueue == 2) {
+                        // Сохраняем состояние авторизации, если пользователь нажал "Завершить"
+                        sharedPreferences.edit().putBoolean("is_switch", true).apply()
+                        navController.navigate("authorization") // Переход на авторизацию
+                    }
+                }
+            }
+        }
+
+        LaunchedEffect(pagerState.currentPage) {
+            currentQueue = pagerState.currentPage
+        }
+    }
+
+    @Composable
+    fun MainContent(currentQueue: Int, navController: NavController, onQueueChange: (Int) -> Unit) {
         val queues = listOf(
             QueueContent(
                 title = "Анализы",
                 description = "Экспресс сбор и получение проб",
                 buttonLabel = "Пропустить",
-                onButtonClick = { onQueueChange(3) }, // Переход на последнюю очередь
+                onButtonClick = { onQueueChange(2) }, // Переход на следующую очередь
                 shapeImage = R.drawable.shape,
                 pageImage = R.drawable.page1,
-                colbImage = R.drawable.colb
+                colbImage = R.drawable.colb,
+                modifierSize = Modifier.size(204.dp, 200.47.dp)
             ),
             QueueContent(
                 title = "Анализы",
                 description = "Описание анализов",
                 buttonLabel = "Пропустить",
-                onButtonClick = { onQueueChange(3) }, // Переход на последнюю очередь
+                onButtonClick = { onQueueChange(2) }, // Переход на следующую очередь
                 shapeImage = R.drawable.shape,
                 pageImage = R.drawable.page2,
-                colbImage = R.drawable.doctor2
+                colbImage = R.drawable.doctor2,
+                modifierSize = Modifier.size(366.dp, 217.dp)
             ),
             QueueContent(
                 title = "Добро пожаловать",
                 description = "",
                 buttonLabel = "Завершить",
-                onButtonClick = { onQueueChange(3) }, // Переход на последнюю очередь
+                onButtonClick = { onQueueChange(2) }, // Переход на авторизацию
                 shapeImage = R.drawable.shape,
                 pageImage = R.drawable.page3,
-                colbImage = R.drawable.dooctor3
-            ),
-            QueueContent(
-                title = "Регистрация",
-                description = "Введите Свое имя",
-                buttonLabel = "",
-                onButtonClick = {},
-                shapeImage = R.drawable.shape,
-                pageImage = R.drawable.page1,
-                colbImage = R.drawable.colb
+                colbImage = R.drawable.dooctor3,
+                modifierSize = Modifier.size(359.dp, 269.dp)
             )
         )
 
@@ -111,13 +135,15 @@ class MainActivity : ComponentActivity() {
                 onButtonClick = queue.onButtonClick,
                 shapeImage = queue.shapeImage,
                 pageImage = queue.pageImage,
-                colbImage = queue.colbImage
+                colbImage = queue.colbImage,
+                modifierSize = queue.modifierSize
             )
         }
     }
 
     @Composable
     fun QueueContentScreen(
+        modifierSize: Modifier,
         title: String,
         description: String,
         buttonLabel: String,
@@ -132,12 +158,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    TextButton(
+                    CustomTextButton(
+                        label = buttonLabel,
                         onClick = onButtonClick,
                         modifier = Modifier
-                    ) {
-                        Text(buttonLabel)
-                    }
+                    )
                     Image(
                         painter = painterResource(id = shapeImage),
                         contentDescription = "Shape Icon",
@@ -148,12 +173,17 @@ class MainActivity : ComponentActivity() {
                 Text(
                     text = title,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.W600,
+                    fontFamily = FontFamily(Font(R.font.nunito_bold)),
+                    color = GreenTitle
                 )
-                Spacer(modifier = Modifier.height(49.dp))
+                Spacer(modifier = Modifier.height(26.dp))
                 Text(
                     text = description,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W400,
+                    fontFamily = FontFamily(Font(R.font.nunito_bold)),
+                    color = GreyDiscr
                 )
                 Spacer(modifier = Modifier.height(60.dp))
                 Image(
@@ -161,11 +191,11 @@ class MainActivity : ComponentActivity() {
                     contentDescription = "Page Image",
                     modifier = Modifier.size(58.dp, 14.29.dp)
                 )
-                Spacer(modifier = Modifier.height(113.14.dp))
+                Spacer(modifier = Modifier.height(106.71.dp))
                 Image(
                     painter = painterResource(id = colbImage),
                     contentDescription = "Colb Image",
-                    modifier = Modifier.size(204.dp, 200.47.dp)
+                    modifier = modifierSize
                 )
             }
         }
@@ -178,14 +208,15 @@ class MainActivity : ComponentActivity() {
         val onButtonClick: () -> Unit,
         val shapeImage: Int,
         val pageImage: Int,
-        val colbImage: Int
+        val colbImage: Int,
+        val modifierSize: Modifier
     )
 
     @Preview(showBackground = true)
     @Composable
     fun DefaultPreview() {
         SmartLabAppTheme {
-            MainContent(currentQueue = 0) { /* No-op */ } // Начинаем с первой очереди
+            MainContent(currentQueue = 0, navController = rememberNavController()) { /* No-op */ }
         }
     }
 }

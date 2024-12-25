@@ -38,7 +38,7 @@ class SplashScreen : ComponentActivity() {
         // Отображение заставки с картинкой на весь экран
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Image(
-                painter = painterResource(id = R.drawable.smartlab), // Замените на ваш ресурс
+                painter = painterResource(id = R.drawable.smartlab),
                 contentDescription = null, // Описание для доступности
                 modifier = Modifier.fillMaxSize(), // Растягиваем изображение на весь экран
                 contentScale = ContentScale.Crop // Используем Crop для растяжения изображения
