@@ -3,9 +3,9 @@ package com.example.smartlabapp
 import Action
 import Category
 import Product
-import SupabaseResponse
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -36,54 +37,62 @@ fun WelcomeIn(navController: NavController) {
     var actions by remember { mutableStateOf(getStaticActions()) }
     var products by remember { mutableStateOf(getStaticProducts()) }
     var errorMessage by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(0) } // Индекс выбранной вкладки
+    var selectedTab by remember { mutableStateOf(0) }
+    var isHidden by remember { mutableStateOf(false) }
 
-    // Прокрутка скрывает определенные элементы
-    var isScrolled by remember { mutableStateOf(false) }
+    // Хранение состояния для добавления продуктов
+    val cartState = remember { mutableStateMapOf<String, Int>() }
+    var totalPrice by remember { mutableStateOf(0) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectVerticalDragGestures { _, dragAmount ->
+                    isHidden = dragAmount < 0
+                }
+            }
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            TextField(
+                value = search,
+                onValueChange = { search = it },
+                placeholder = {
+                    Text(
+                        text = "Искать анализы",
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily(Font(R.font.nunito_medium)),
+                        fontWeight = FontWeight.W400,
+                        color = Color.Gray
+                    )
+                },
+                modifier = Modifier
+                    .height(68.dp)
+                    .width(350.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = 16.dp),
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.search_ic),
+                        contentDescription = "Search Icon",
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                shape = RoundedCornerShape(10.dp)
+            )
+        }
+
         LazyColumn(
             modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(top = 48.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                // Поле поиска
-                TextField(
-                    value = search,
-                    onValueChange = { search = it },
-                    placeholder = {
-                        Text(
-                            text = "Искать анализы",
-                            fontSize = 16.sp,
-                            fontFamily = FontFamily(Font(R.font.nunito_medium)),
-                            fontWeight = FontWeight.W400,
-                            color = Color.Gray
-                        )
-                    },
-                    modifier = Modifier
-                        .height(50.dp)
-                        .width(350.dp)
-                        .padding(start = 20.dp),
-                    leadingIcon = {
-                        Image(
-                            painter = painterResource(id = R.drawable.search_ic),
-                            contentDescription = "Search Icon",
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
-                    colors = TextFieldDefaults.textFieldColors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(10.dp)
-                )
-            }
-
-            // Элементы скрываются при прокрутке
-            if (!isScrolled) {
+            if (!isHidden) {
                 item {
-                    // Заголовок "Акции и новости"
                     Text(
                         text = "Акции и новости",
                         color = Color.Gray,
@@ -96,7 +105,6 @@ fun WelcomeIn(navController: NavController) {
                 }
 
                 item {
-                    // Горизонтальный скролл для акций
                     LazyRow(
                         modifier = Modifier
                             .height(152.dp)
@@ -121,7 +129,6 @@ fun WelcomeIn(navController: NavController) {
                 }
 
                 item {
-                    // Заголовок "Каталог анализов"
                     Text(
                         text = "Каталог анализов",
                         color = Color.Gray,
@@ -134,7 +141,6 @@ fun WelcomeIn(navController: NavController) {
                 }
             }
 
-            // Кнопки для горизонтального скролла
             item {
                 LazyRow(
                     modifier = Modifier.padding(start = 20.dp, top = 16.dp)
@@ -144,24 +150,28 @@ fun WelcomeIn(navController: NavController) {
                             onClick = { /* Действие для категории */ },
                             modifier = Modifier
                                 .wrapContentWidth()
-                                .height(48.dp), // Высота кнопки
+                                .height(48.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (category.name == "Популярные") Color.Blue else Color.Gray // Цвет кнопки
+                                containerColor = if (category.name == "Популярные") Color.Blue else Color.Gray
                             ),
-                            shape = RoundedCornerShape(10.dp) // Радиус
+                            shape = RoundedCornerShape(10.dp)
                         ) {
                             Text(
                                 text = category.name,
-                                color = Color.White // Цвет текста
+                                color = Color.White
                             )
                         }
-                        Spacer(modifier = Modifier.width(16.dp)) // Промежуток между кнопками
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
                 }
             }
 
-            // Блоки информации о продуктах
             items(products) { product ->
+                val isAdded = cartState[product.id] ?: 0
+                val buttonText = if (isAdded > 0) "Убрать" else "Добавить"
+                val buttonColor = if (isAdded > 0) Color.Blue else Color.White
+                val buttonBackgroundColor = if (isAdded > 0) Color.White else Color.Blue
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -178,18 +188,32 @@ fun WelcomeIn(navController: NavController) {
                             horizontalArrangement = Arrangement.End
                         ) {
                             Button(
-                                onClick = { /* Действие для категории */ },
+                                onClick = {
+                                    if (isAdded > 0) {
+                                        // Убираем продукт из корзины
+                                        cartState[product.id] = isAdded - 1
+                                    } else {
+                                        // Добавляем продукт в корзину
+                                        cartState[product.id] = isAdded + 1
+                                    }
+                                    // Обновляем общую сумму
+                                    totalPrice = cartState.entries.sumOf { (id, count) ->
+                                        if (count > 0) {
+                                            products.first { it.id == id }.price.toInt() * count
+                                        } else 0
+                                    }
+                                },
                                 modifier = Modifier
                                     .wrapContentWidth()
-                                    .wrapContentHeight(), // Высота кнопки
+                                    .wrapContentHeight(),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Blue // Цвет кнопки
+                                    containerColor = buttonBackgroundColor
                                 ),
-                                shape = RoundedCornerShape(10.dp) // Радиус
+                                shape = RoundedCornerShape(10.dp)
                             ) {
                                 Text(
-                                    text = "Добавить",
-                                    color = Color.White // Цвет текста
+                                    text = buttonText,
+                                    color = buttonColor
                                 )
                             }
                         }
@@ -197,7 +221,6 @@ fun WelcomeIn(navController: NavController) {
                 }
             }
 
-            // Обработка ошибок
             if (errorMessage.isNotEmpty()) {
                 item {
                     Text(
@@ -205,6 +228,41 @@ fun WelcomeIn(navController: NavController) {
                         color = Color.Red,
                         modifier = Modifier.padding(start = 20.dp, top = 16.dp)
                     )
+                }
+            }
+        }
+
+        // Бокс для корзины
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(104.dp)
+                .padding(16.dp)
+                .border(1.dp, Color.Gray, RoundedCornerShape(10.dp))
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Button(
+                onClick = { navController.navigate("korz") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_cart), // Укажите иконку для корзины
+                            contentDescription = "Корзина",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = "В корзину", color = Color.White)
+                    }
+                    Text(text = "$totalPrice ₽", color = Color.White)
                 }
             }
         }
@@ -223,33 +281,27 @@ fun WelcomeIn(navController: NavController) {
                         Image(
                             painter = painterResource(id = icons[index]),
                             contentDescription = title,
-                            modifier = Modifier.size(32.dp) // Увеличиваем размер иконки до 32dp
+                            modifier = Modifier.size(32.dp)
                         )
                     },
                     label = {
                         Text(
                             text = title,
-                            fontSize = 12.sp, // Устанавливаем размер текста на 12sp
-                            color = if (selectedTab == index) Color.Blue else Color.Gray
+                            fontSize = 12.sp,
+                            color = if (selectedTab == index) Color.Blue else Color.Gray,
+                            maxLines = 1
                         )
                     },
                     selected = selectedTab == index,
                     onClick = {
-                        selectedTab = index // Устанавливаем выбранную вкладку
+                        selectedTab = index
                     },
-                    alwaysShowLabel = true
+                    alwaysShowLabel = true,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
                 )
-                // Добавляем отступ между элементами меню
-                Spacer(modifier = Modifier.width(19.dp))
             }
-        }
-    }
-
-
-    // Обработка прокрутки
-    LaunchedEffect(Unit) {
-        snapshotFlow { isScrolled }.collect { scrolled ->
-            isScrolled = scrolled
         }
     }
 }

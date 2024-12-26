@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
                         composable("WelcomeIn") { WelcomeIn(navController) }
                         composable("Autorization") { Autorization(navController) }
                         composable("AutorizationReg") { AutorizationReg(navController) }
+
                     }
                 }
             }
@@ -76,6 +77,7 @@ class MainActivity : ComponentActivity() {
             composable("main") { MainScreen(navController) }
             composable("Autorization") { Autorization(navController) }
             composable("WelcomeIn") { WelcomeIn(navController) }
+
         }
     }
     @Composable
@@ -237,4 +239,6 @@ class MainActivity : ComponentActivity() {
             MainContent(currentQueue = 0, navController = rememberNavController()) { /* No-op */ }
         }
     }
+
+
 }
