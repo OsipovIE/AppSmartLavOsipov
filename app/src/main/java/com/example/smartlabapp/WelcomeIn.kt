@@ -244,7 +244,8 @@ fun WelcomeIn(navController: NavController) {
         ) {
             Button(
                 onClick = { navController.navigate("korz") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                 shape = RoundedCornerShape(10.dp)
             ) {
