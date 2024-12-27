@@ -78,6 +78,7 @@ class MainActivity : ComponentActivity() {
                 Korz(navController, cartStateString, totalPrice, products) // Передача products
             }
 
+
         }
     }
 
