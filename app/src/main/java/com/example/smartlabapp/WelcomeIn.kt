@@ -1,5 +1,6 @@
 package com.example.smartlabapp
 
+import com.google.gson.Gson
 import Action
 import Category
 import Product
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.smartlabapp.ui.theme.Blueall
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,12 +149,12 @@ fun WelcomeIn(navController: NavController) {
                 ) {
                     items(getStaticCategories()) { category ->
                         Button(
-                            onClick = { /* Действие для категории */ },
+                            onClick = {  },
                             modifier = Modifier
                                 .wrapContentWidth()
                                 .height(48.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (category.name == "Популярные") Color.Blue else Color.Gray
+                                containerColor = if (category.name == "Популярные") Blueall else Color.Gray
                             ),
                             shape = RoundedCornerShape(10.dp)
                         ) {
@@ -169,8 +171,8 @@ fun WelcomeIn(navController: NavController) {
             items(products) { product ->
                 val isAdded = cartState[product.id] ?: 0
                 val buttonText = if (isAdded > 0) "Убрать" else "Добавить"
-                val buttonColor = if (isAdded > 0) Color.Blue else Color.White
-                val buttonBackgroundColor = if (isAdded > 0) Color.White else Color.Blue
+                val buttonColor = if (isAdded > 0) Blueall else Color.White
+                val buttonBackgroundColor = if (isAdded > 0) Color.White else Blueall
 
                 Box(
                     modifier = Modifier
@@ -242,12 +244,16 @@ fun WelcomeIn(navController: NavController) {
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
+            val gson = Gson()
+            val cartStateJson = gson.toJson(cartState)
+
             Button(
-                onClick = { navController.navigate("korz") },
+                onClick = {
+                    navController.navigate("Korz/$cartStateJson/$totalPrice")
+                },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
-                shape = RoundedCornerShape(10.dp)
-            ) {
+                colors = ButtonDefaults.buttonColors(containerColor = Blueall)
+            )  {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -266,43 +272,6 @@ fun WelcomeIn(navController: NavController) {
                 }
             }
         }
-
-        // Нижнее меню
-        BottomNavigation(
-            backgroundColor = Color.White,
-            contentColor = Color.Gray
-        ) {
-            val tabs = listOf("Анализы", "Результаты", "Поддержка", "Профиль")
-            val icons = listOf(R.drawable.iconm1, R.drawable.iconm2, R.drawable.iconm3, R.drawable.iconm4)
-
-            tabs.forEachIndexed { index, title ->
-                BottomNavigationItem(
-                    icon = {
-                        Image(
-                            painter = painterResource(id = icons[index]),
-                            contentDescription = title,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = title,
-                            fontSize = 12.sp,
-                            color = if (selectedTab == index) Color.Blue else Color.Gray,
-                            maxLines = 1
-                        )
-                    },
-                    selected = selectedTab == index,
-                    onClick = {
-                        selectedTab = index
-                    },
-                    alwaysShowLabel = true,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
-            }
-        }
     }
 }
 
@@ -315,23 +284,23 @@ fun getStaticActions(): List<Action> {
 
 fun getStaticProducts(): List<Product> {
     return listOf(
-        Product("1", "ПЦР-тест на определение РНК коронавируса стандартный", "1800"),
-        Product("2", "Клинический анализ крови с лейкоцитарной формулировкой", "690"),
-        Product("3", "Биохимический анализ крови, базовый", "2440"),
-        Product("4", "СОЭ (венозная кровь)", "240"),
-        Product("5", "Общий анализ мочи", "350"),
-        Product("6", "Тироксин свободный (Т4 свободный)", "680"),
-        Product("7", "Группа крови + Резус-фактор", "750"),
-        Product("8", "ПЦР-тест на определение РНК коронавируса стандартный", "1800"),
-        Product("9", "Клинический анализ крови с лейкоцитарной формулировкой", "690"),
-        Product("10", "Биохимический анализ крови, базовый", "2440"),
-        Product("11", "СОЭ (венозная кровь)", "240"),
-        Product("12", "Общий анализ мочи", "350"),
-        Product("13", "Тироксин свободный (Т4 свободный)", "680"),
-        Product("14", "Группа крови + Резус-фактор", "750"),
-        Product("15", "СОЭ (капиллярная кровь)", "400"),
-        Product("16", "Исследования кала на скрытую кровь", "400"),
-        Product("17", "Инфекции, передающиеся половым путем (кровь)", "800")
+        Product(id = "1", name = "ПЦР-тест на определение РНК коронавируса стандартный", "1800"),
+        Product(id = "2", name ="Клинический анализ крови с лейкоцитарной формулировкой", "690"),
+        Product(id = "3", name ="Биохимический анализ крови, базовый", "2440"),
+        Product(id = "4",name = "СОЭ (венозная кровь)", "240"),
+        Product(id ="5", name ="Общий анализ мочи", "350"),
+        Product(id ="6", name ="Тироксин свободный (Т4 свободный)", "680"),
+        Product(id ="7",name = "Группа крови + Резус-фактор", "750"),
+        Product(id ="8",name = "ПЦР-тест на определение РНК коронавируса стандартный", "1800"),
+        Product(id ="9",name = "Клинический анализ крови с лейкоцитарной формулировкой", "690"),
+        Product(id ="10",name = "Биохимический анализ крови, базовый", "2440"),
+        Product(id ="11", name ="СОЭ (венозная кровь)", "240"),
+        Product(id ="12",name = "Общий анализ мочи", "350"),
+        Product(id ="13",name = "Тироксин свободный (Т4 свободный)", "680"),
+        Product(id ="14",name = "Группа крови + Резус-фактор", "750"),
+        Product(id ="15",name = "СОЭ (капиллярная кровь)", "400"),
+        Product(id ="16",name = "Исследования кала на скрытую кровь", "400"),
+        Product(id ="17", name ="Инфекции, передающиеся половым путем (кровь)", "800")
     )
 }
 

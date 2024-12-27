@@ -22,6 +22,8 @@ import androidx.navigation.NavController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import com.example.smartlabapp.ui.theme.Blueall
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Autorization(navController: NavController) {
@@ -164,14 +166,15 @@ fun Autorization(navController: NavController) {
                     enabled = isButtonEnabled,
                     modifier = Modifier
                         .width(335.dp)
-                        .height(56.dp)
-                        .background(
-                            if (isButtonEnabled) Color.Blue else Color.Gray,
-                            RoundedCornerShape(10.dp)
-                        )
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isButtonEnabled) Blueall else Color.Gray // Устанавливаем цвет кнопки
+                    ),
+                    shape = RoundedCornerShape(10.dp) // Устанавливаем форму кнопки
                 ) {
                     Text(text = "Далее", color = Color.White)
                 }
+
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
@@ -190,7 +193,7 @@ fun Autorization(navController: NavController) {
                         fontSize = 14.sp,
                         fontFamily = FontFamily(Font(R.font.nunito_medium)),
                         fontWeight = FontWeight.W600,
-                        color = Color.Blue,
+                        color = Blueall,
                         modifier = Modifier
                             .clickable { navController.navigate("AutorizationReg") }
                     )

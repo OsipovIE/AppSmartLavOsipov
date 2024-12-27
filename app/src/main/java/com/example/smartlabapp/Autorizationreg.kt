@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -27,6 +28,8 @@ import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.smartlabapp.ui.theme.Blueall
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutorizationReg(navController: NavController) {
@@ -166,18 +169,19 @@ fun AutorizationReg(navController: NavController) {
                     email.text.isNotEmpty() && password.text.isNotEmpty() && !emailError
 
                 Button(
-                    onClick = { navController.navigate("WelcomeIn") },
+                    onClick = { navController.navigate("SavePwd") },
                     enabled = isButtonEnabled,
                     modifier = Modifier
                         .width(335.dp)
-                        .height(56.dp)
-                        .background(
-                            if (isButtonEnabled) Color.Blue else Color.Gray,
-                            RoundedCornerShape(10.dp)
-                        )
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isButtonEnabled) Blueall else Color.Gray // Устанавливаем цвет кнопки
+                    ),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(text = "Далее", color = Color.White)
                 }
+
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
@@ -196,7 +200,7 @@ fun AutorizationReg(navController: NavController) {
                         fontSize = 14.sp,
                         fontFamily = FontFamily(Font(R.font.nunito_medium)),
                         fontWeight = FontWeight.W600,
-                        color = Color.Blue,
+                        color = Blueall,
                         modifier = Modifier
                             .clickable { navController.navigate("Autorization") }
                     )

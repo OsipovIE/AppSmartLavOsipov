@@ -1,5 +1,6 @@
 package com.example.smartlabapp
 
+import Product
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -24,6 +25,8 @@ import com.example.smartlabapp.ui.theme.SmartLabAppTheme
 import android.content.SharedPreferences
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.smartlabapp.ui.theme.GreenTitle
 import com.example.smartlabapp.ui.theme.GreyDiscr
 import com.google.accompanist.pager.HorizontalPager
@@ -34,52 +37,51 @@ class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private var currentQueue by mutableStateOf(0)
 
+    // Пример состояния корзины и продуктов
+    private val cartState = mutableMapOf<String, Int>()
+    private val products = listOf<Product>() // Предположим, что у вас есть список продуктов
+    private var totalPrice by mutableStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        setContent{
-            Navigation()
-        }
+
         // Проверка, было ли приложение открыто ранее
         currentQueue = sharedPreferences.getInt("current_queue", 0)
 
-        // Если пользователь уже прошел свайпы, сразу переходим на экран авторизации
-        if (sharedPreferences.getBoolean("is_switch", false)) {
-            setContent {
-                SmartLabAppTheme {
-                    val navController = rememberNavController()
-                    NavHost(navController, startDestination = "authorization") {
-                        composable("authorization") { Autorization(navController) }
-                        composable("WelcomeIn") { WelcomeIn(navController) }
-                        composable("Autorization") { Autorization(navController) }
-                        composable("AutorizationReg") { AutorizationReg(navController) }
-
-                    }
-                }
-            }
-        } else {
-            setContent {
-                SmartLabAppTheme {
-                    val navController = rememberNavController()
-                    NavHost(navController, startDestination = "main") {
-                        composable("main") { MainScreen(navController) }
-                        composable("authorization") { Autorization(navController) }
-                        composable("WelcomeIn") { WelcomeIn(navController) }
-                    }
-                }
+        setContent {
+            SmartLabAppTheme {
+                Navigation()
             }
         }
     }
+
     @Composable
     fun Navigation() {
         val navController = rememberNavController()
-        NavHost(navController = navController, startDestination = "main") {
+        NavHost(navController = navController, startDestination = if (sharedPreferences.getBoolean("is_switch", false)) "authorization" else "main") {
             composable("main") { MainScreen(navController) }
-            composable("Autorization") { Autorization(navController) }
+            composable("authorization") { Autorization(navController) }
             composable("WelcomeIn") { WelcomeIn(navController) }
+            composable("SavePwd") { SavePwd(navController) }
+            composable("AutorizationReg") { AutorizationReg(navController) }
+            composable(
+                "Korz/{cartState}/{totalPrice}",
+                arguments = listOf(
+                    navArgument("cartState") { type = NavType.StringType },
+                    navArgument("totalPrice") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val cartStateString = backStackEntry.arguments?.getString("cartState") ?: "{}"
+                val totalPrice = backStackEntry.arguments?.getInt("totalPrice") ?: 0
+
+                Korz(navController, cartStateString, totalPrice, products) // Передача products
+            }
 
         }
     }
+
+
     @Composable
     fun MainScreen(navController: NavController) {
         val pagerState = rememberPagerState(initialPage = currentQueue)
@@ -99,7 +101,6 @@ class MainActivity : ComponentActivity() {
                         sharedPreferences.edit().putBoolean("is_switch", true).apply()
                         navController.navigate("authorization") // Переход на авторизацию
                     }
-
                 }
             }
         }
@@ -143,7 +144,6 @@ class MainActivity : ComponentActivity() {
                 colbImage = R.drawable.dooctor3,
                 modifierSize = Modifier.size(359.dp, 269.dp)
             )
-
         )
 
         if (currentQueue < queues.size) {
@@ -239,6 +239,4 @@ class MainActivity : ComponentActivity() {
             MainContent(currentQueue = 0, navController = rememberNavController()) { /* No-op */ }
         }
     }
-
-
 }
