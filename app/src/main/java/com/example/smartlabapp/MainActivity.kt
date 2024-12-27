@@ -77,7 +77,14 @@ class MainActivity : ComponentActivity() {
 
                 Korz(navController, cartStateString, totalPrice, products) // Передача products
             }
-
+            composable(
+                "Oplata/{currentTotalPrice}",
+                arguments = listOf(navArgument("currentTotalPrice") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val currentTotalPrice = backStackEntry.arguments?.getInt("currentTotalPrice") ?: 0
+                Oplata(navController, currentTotalPrice)
+            }
+            composable("OplataTrue") { OplataTrue(navController) }
 
         }
     }

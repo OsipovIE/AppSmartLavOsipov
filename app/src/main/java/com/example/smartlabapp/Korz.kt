@@ -18,28 +18,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.gson.reflect.TypeToken
 import androidx.navigation.NavController
+import com.example.smartlabapp.ui.theme.Blueall
 import com.google.gson.Gson
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Korz(navController: NavController, cartStateString: String, totalPrice: Int, welcomeInProducts: List<Product>) {
-    // Декодируем строку состояния корзины в Map
     val cartStateType = object : TypeToken<MutableMap<String, Int>>() {}.type
     var cartState: MutableMap<String, Int> = Gson().fromJson(cartStateString, cartStateType) ?: mutableMapOf()
 
-    // Получаем статические продукты
     val staticProducts = getStaticProductsKorz()
 
-    // Состояние для хранения общей суммы
     var currentTotalPrice by remember { mutableStateOf(totalPrice) }
 
-    // Функция для обновления суммы
+    val visibleProducts = remember { mutableStateMapOf<String, Boolean>() }
+
     fun updateTotalPrice() {
         currentTotalPrice = calculateTotalPrice(cartState, staticProducts)
     }
 
-    // Инициализация общей суммы при первом запуске
     LaunchedEffect(cartState) {
+        cartState.keys.forEach { id ->
+            visibleProducts[id] = true
+        }
         updateTotalPrice()
     }
 
@@ -52,7 +52,6 @@ fun Korz(navController: NavController, cartStateString: String, totalPrice: Int,
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Верхний бокс с кнопками и заголовком
             Box(
                 modifier = Modifier
                     .width(329.dp)
@@ -61,7 +60,7 @@ fun Korz(navController: NavController, cartStateString: String, totalPrice: Int,
                 contentAlignment = Alignment.TopStart
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.back), // Убедитесь, что у вас есть изображение back.png
+                    painter = painterResource(id = R.drawable.back),
                     contentDescription = "Back",
                     modifier = Modifier
                         .size(32.dp)
@@ -75,35 +74,46 @@ fun Korz(navController: NavController, cartStateString: String, totalPrice: Int,
                     modifier = Modifier.align(Alignment.BottomStart)
                 )
                 Image(
-                    painter = painterResource(id = R.drawable.korz), // Убедитесь, что у вас есть изображение korz.png
+                    painter = painterResource(id = R.drawable.korz),
                     contentDescription = "Clear Cart",
                     modifier = Modifier
                         .size(20.dp)
                         .align(Alignment.BottomEnd)
                         .clickable {
                             cartState.clear()
-                            updateTotalPrice()
+                            currentTotalPrice = 0 // Сбрасываем сумму при очистке корзины
                         }
                 )
             }
 
-            // Скроллируемая область для продуктов
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .fillMaxWidth()
-                    .weight(1f), // Занимает оставшееся пространство
+                    .weight(1f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 for ((id, count) in cartState) {
-                    val product = staticProducts.firstOrNull { it.id == id }
-                    if (product != null) {
-                        ProductBox(product = product, count = count)
+                    if (visibleProducts[id] == true) {
+                        val product = staticProducts.first { it.id == id }
+                        ProductBox(
+                            product = product,
+                            count = count,
+                            onDelete = {
+                                cartState.remove(id)
+                                visibleProducts[id] = false
+                                currentTotalPrice -= (product.price.toInt() * count) // Вычитаем стоимость удаляемого товара
+                                if (cartState.isEmpty()) {
+                                    currentTotalPrice = 0 // Сбрасываем сумму, если корзина пуста
+                                }
+                            },
+                            cartStateString = cartStateString,
+                            welcomeInProducts = welcomeInProducts
+                        )
                     }
                 }
             }
 
-            // Отображение общей суммы
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -112,22 +122,30 @@ fun Korz(navController: NavController, cartStateString: String, totalPrice: Int,
                 Text(text = "$currentTotalPrice ₽", fontSize = 20.sp, color = Color.Black, fontWeight = FontWeight.W600)
             }
 
-            // Кнопка для перехода к оформлению заказа
             Button(
-                onClick = { /* Действие при нажатии на кнопку для оформления заказа */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+                onClick = { navController.navigate("Oplata/$currentTotalPrice") },
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Blueall)
             ) {
                 Text(text = "Перейти к оформлению заказа", color = Color.White)
             }
+
         }
     }
 }
 
 @Composable
-fun ProductBox(product: Product, count: Int) {
+fun ProductBox(
+    product: Product,
+    count: Int,
+    onDelete: () -> Unit,
+    cartStateString: String,
+    welcomeInProducts: List<Product>
+) {
+    val cartStateType = object : TypeToken<MutableMap<String, Int>>() {}.type
+    var cartState: MutableMap<String, Int> = Gson().fromJson(cartStateString, cartStateType) ?: mutableMapOf()
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .width(332.dp)
@@ -145,8 +163,41 @@ fun ProductBox(product: Product, count: Int) {
             Text(text = "Цена: ${product.price} ₽", fontSize = 16.sp, color = Color.Black)
             Text(text = "Количество: $count", fontSize = 16.sp, color = Color.Black)
         }
+        Image(
+            painter = painterResource(id = R.drawable.delete),
+            contentDescription = "Delete",
+            modifier = Modifier
+                .size(20.dp)
+                .align(Alignment.BottomEnd)
+                .clickable {
+                    showDeleteConfirmation = true
+                }
+        )
+    }
+
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Подтверждение удаления") },
+            text = { Text("Вы уверены, что хотите удалить этот продукт из корзины?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDelete() // Вызываем функцию удаления
+                    showDeleteConfirmation = false // Закрываем диалог
+                }) {
+                    Text("Да")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Нет")
+                }
+            }
+        )
     }
 }
+
+
 
 fun calculateTotalPrice(cartState: Map<String, Int>, staticProducts: List<Product>): Int {
     var total = 0

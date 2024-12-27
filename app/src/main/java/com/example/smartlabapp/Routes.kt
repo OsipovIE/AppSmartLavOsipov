@@ -6,4 +6,6 @@ open class Routes(val route: String) {
     object AutorizationReg : Routes("AutorizationReg")
     object SavePwd : Routes("SavePwd")
     object Korz : Routes("Korz")
+    object Oplata : Routes("Oplata")
+    object OplataTrue : Routes("OplataTrue")
 }
